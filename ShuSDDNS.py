@@ -7,7 +7,8 @@ from datetime import datetime
 
 def read_config(config_path):
     config = configparser.ConfigParser()
-    config.read(config_path)
+    with open(config_path, 'r', encoding='utf-8') as configfile:
+        config.read_file(configfile)
     return config['DEFAULT']
 
 def get_rules_with_node_info(api_url, api_id, api_token):
