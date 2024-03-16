@@ -1,9 +1,22 @@
+import sys
 import requests
 import hashlib
 import json
 import configparser
 from pathlib import Path
 from datetime import datetime
+
+def get_config_path():
+    """
+    获取配置文件的路径。这将根据应用是直接运行还是通过PyInstaller打包后运行来确定。
+    """
+    if getattr(sys, 'frozen', False):
+        # 如果程序是通过PyInstaller打包的，则使用可执行文件所在的目录
+        dir_path = Path(sys.executable).parent
+    else:
+        # 如果程序是直接运行的，则使用脚本所在的目录
+        dir_path = Path(__file__).parent
+    return dir_path / 'ShuSDDNS.config'
 
 def read_config(config_path):
     config = configparser.ConfigParser()
@@ -67,7 +80,8 @@ def update_dns_record(cf_api_token, zone_id, domain, subdomain, ip):
     status = "success" if update_response.ok else "failed"
     return {"status": status, "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
-def main(config_path):
+def main():
+    config_path = get_config_path()
     config = read_config(config_path)
     api_url = config['API_URL']
     api_id = config['API_ID']
@@ -94,5 +108,4 @@ def main(config_path):
             json.dump({"rules_info": rules_info, "dns_updates": dns_updates}, file, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
-    config_path = Path(__file__).with_name('ShuSDDNS.config')
-    main(config_path)
+    main()
