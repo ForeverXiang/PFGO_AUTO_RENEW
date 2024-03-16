@@ -18,6 +18,18 @@ def get_config_path():
         dir_path = Path(__file__).parent
     return dir_path / 'ShuSDDNS.config'
 
+def get_record_path():
+    """
+    获取记录文件的路径。这将根据应用是直接运行还是通过PyInstaller打包后运行来确定。
+    """
+    if getattr(sys, 'frozen', False):
+        # 如果程序是通过PyInstaller打包的，则使用可执行文件所在的目录
+        dir_path = Path(sys.executable).parent
+    else:
+        # 如果程序是直接运行的，则使用脚本所在的目录
+        dir_path = Path(__file__).parent
+    return dir_path / 'ShuSDDNS_record.json'
+
 def read_config(config_path):
     config = configparser.ConfigParser()
     with open(config_path, 'r', encoding='utf-8') as configfile:
@@ -101,10 +113,12 @@ def main():
                 "status": update_result["status"],
                 "timestamp": update_result["timestamp"]
             })
-
+    # 使用新方法获取记录文件的路径
+    record_path = get_record_path()
     # Write to file only if there are updates
+    # 修改文件写入部分，使用record_path作为文件路径
     if dns_updates:
-        with open("ShuSDDNS_record.json", "w", encoding='utf-8') as file:
+        with open(record_path, "w", encoding='utf-8') as file:
             json.dump({"rules_info": rules_info, "dns_updates": dns_updates}, file, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
