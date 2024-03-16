@@ -1,4 +1,4 @@
-name: Python application build
+name: Build Python Application for aarch64
 
 on: [push]
 
@@ -10,24 +10,30 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Build and export Python application
+      uses: docker/build-push-action@v2
       with:
-        python-version: '3.8'
+        context: .
+        push: false
+        platforms: linux/arm64
+        load: true
+        tags: username/myapp:aarch64
+        file: Dockerfile
 
-    - name: Install dependencies
+    - name: Extract the compiled application
       run: |
-        python -m pip install --upgrade pip
-        pip install pyinstaller
-        # 安装你的项目依赖
-        pip install -r requirements.txt
+        id=$(docker create username/myapp:aarch64)
+        docker cp $id:/path/to/dist/ShuSDDNS ./
+        docker rm -v $id
 
-    - name: Build with PyInstaller
-      run: |
-        pyinstaller --onefile ShuSDDNS.py
-
-    - name: Upload artifacts
+    - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
-        name: executable
-        path: dist/ShuSDDNS
+        name: ShuSDDNS-aarch64
+        path: ShuSDDNS
